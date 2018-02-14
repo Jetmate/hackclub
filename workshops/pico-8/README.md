@@ -1,27 +1,27 @@
 # Pico-8 Action Game
 
-## Why Pico?
-I consider Pico to be *the best* way to introduce newcomers to coding because of just how fun it is to code in it. Unlike traditional game engines, Pico manages to preserve a traditional coding feel while also streamlining the whole game development process: you still write legitimate Lua code and implement all game systems (like animation, physics, and scenes) yourself. This is good in the long run because that means that beginners get to actually code their games from scratch, rather than gluing together a bunch of pre-made elements. At the same time, however, Pico makes implement graphics, tilemaps, and even music a breeze by including all of those tools into the same package. This means that there's no more need in teaching beginners multiple pieces of software and how to make them work together, as everything is already there: for example, displaying a sprite from a spritesheet is as simple as `spr(0)`!
+## Why Pico-8?
+I consider Pico-8 to be *the best* way to introduce newcomers to coding because of just how fun it is to code in it. Unlike traditional game engines, Pico-8 manages to preserve a traditional coding feel while also streamlining the whole game development process: you still write legitimate Lua code and implement all game systems (like animation, physics, and scenes) yourself. This is good in the long run because that means that beginners get to actually code their games from scratch, rather than gluing together a bunch of pre-made elements. At the same time, however, Pico-8 makes implement graphics, tilemaps, and even music a breeze by including all of those tools into the same package. This means that there's no more need in teaching beginners multiple pieces of software and how to make them work together, as everything is already there: for example, displaying a sprite from a spritesheet is as simple as `spr(0)`!
 
 ## Setup
-This workshop requires a copy of [Pico-8](https://www.lexaloffle.com/pico-8.php), which unfortunately costs $15. The good news is that Pico is DRM-free, which means that you can share one license with your whole club.
+This workshop requires a copy of [Pico-8](https://www.lexaloffle.com/pico-8.php), which unfortunately costs $15. The good news is that Pico-8 is DRM-free, which means that you can share one license with your whole club.
 
 It is also strongly recommended that you download this wonderful cheatsheet:
 
 ![](assets/cheatsheet.png)
 
-One common practice is to fullscreen it behind Pico, like so:
+One common practice is to fullscreen it behind Pico-8, like so:
 
 ![](assets/pico_with_cheatsheet.png)
 
 ## Let's start!
-Tired of complex workflows and high-definition graphics? Well, the Pico-8 fantasy console is here to help. Through the course of this workshop you will make [this](demos/final.html) action game. Along the way you'll learn how to use the Pico console along with the basics of Lua scripting.
+Tired of complex workflows and high-definition graphics? Well, the Pico-8 fantasy console is here to help. Through the course of this workshop you will make [this](demos/final.html) action game. Along the way you'll learn how to use the Pico-8 console along with the basics of Lua scripting.
 
 <iframe src="demos/final.html" width="100%" height="700px">
   <image src="assets/final.gif">
 </iframe>
 
-A couple of basic pieces of information about Pico: there are three modes.
+A couple of basic pieces of information about Pico-8: there are three modes.
 
  * The console mode
 
@@ -57,7 +57,7 @@ end
 ```
 Don't worry about what exactly is going on here, just understand that anything that goes in-between the `function` and `end` will be drawn onto the screen.
 
-Side-not: in Pico, any line of code that begins with `--` is ignored, so it's useful for writing various comments about the code.
+Sidenote: in Pico-8, any line of code that begins with `--` is ignored, so it's useful for writing various comments about the code.
 
 With that in mind, let's draw a rectangle.
 
@@ -100,7 +100,7 @@ Variables are essentially little boxes that allow you to store a value, like a n
 x = 3
 ```
 
-Whenever Pico comes across a variable it replaces that variable with the value that is currently stored in it, so
+Whenever Pico-8 comes across a variable it replaces that variable with the value that is currently stored in it, so
 
 ```lua
 x = 3
@@ -130,7 +130,7 @@ function _draw()
  rect(x, 0, 10, 10)
 end
 ```
-Remember the game loop theory? Well, Pico provides another function for the update phase of the game-loop called `_update`. This function is run every loop before the `_draw` function, and so allows us to modify any variables we want. Let's modify the x variable so that the square moves to the right:
+Remember the game loop theory? Well, Pico-8 provides another function for the update phase of the game-loop called `_update`. This function is run every loop before the `_draw` function, and so allows us to modify any variables we want. Let's modify the `x` variable so that the square moves to the right:
 ```lua
 x = 0
 
@@ -153,7 +153,7 @@ function _draw()
  rect(x, 0, x + 10, 10)
 end
 ```
-Now, the right side of the square will always be 10 pixels in front of the left side.
+Now, the right side of the square will always be `10` pixels in front of the left side.
 
 ![](assets/moving_square_fix.gif)
 
@@ -166,7 +166,7 @@ A value is anything that you can place into a variable. The most basic type is a
 3 / 3 -- 1, division
 3 ^ 3 -- 27, to the power of
 ```
-Whenever Pico comes across one of these operations, it replaces the operation with its result, so `3 + 3` becomes `6`.
+Whenever Pico-8 comes across one of these operations, it replaces the operation with its result, so `3 + 3` becomes `6`.
 
 The other important type is a boolean, which is just `true` or `false`. There are also operations that result in booleans:
 ```lua
@@ -180,7 +180,7 @@ The other important type is a boolean, which is just `true` or `false`. There ar
 
 true and false -- false
 true or false -- true
-``
+```
 We can combine these to form complex expressions, like
 
 ## User input
@@ -194,6 +194,6 @@ if true then
  print(1)
 end
 ```
-If the boolean between the `if` and `then` is `true` then the up to `end` is run. Otherwise, Pico just skips the whole expression. This becomes very powerful when you combine it with the `btn` function, which returns a boolean depending on whether a button is pressed. We can consult the cheatsheet to find out more:
+If the boolean between the `if` and `then` is `true` then the up to `end` is run. Otherwise, Pico-8 just skips the whole expression. This becomes very powerful when you combine it with the `btn` function, which returns a boolean depending on whether a button is pressed. We can consult the cheatsheet to find out more:
 
 ![asset
