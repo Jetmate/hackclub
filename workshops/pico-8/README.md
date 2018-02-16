@@ -41,8 +41,6 @@ A couple of basic pieces of information about Pico-8: there are three modes.
    This is where you can test your game. **You can get to it by pressing `Ctrl-R`. To get back to the editor, press `Esc` twice.**
 
 ## Code, oh my
-Before making the actual game, a bit of theory.
-
 ![](assets/gameloop.png)
 
 Every game has something called a gameloop, which is code that is called every frame. This gameloop is split into three parts: first, the game collects user input (is the right arrow pressed?). Then, the game updates some internal variables (move the player right). Finally, the game redraws the screen to reflect the new state.
@@ -130,7 +128,7 @@ function _draw()
  rect(x, 0, 10, 10)
 end
 ```
-Remember the game loop theory? Well, Pico-8 provides another function for the update phase of the game-loop called `_update`. This function is run every loop before the `_draw` function, and so allows us to modify any variables we want. Let's modify the `x` variable so that the square moves to the right:
+Pico-8 provides another function for the update phase of the game-loop called `_update`. This function is run every loop before the `_draw` function, and so allows us to modify any variables we want. Let's modify the `x` variable so that the square moves to the right:
 ```lua
 x = 0
 
