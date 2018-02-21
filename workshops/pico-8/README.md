@@ -57,21 +57,20 @@ Don't worry about what exactly is going on here, just understand that anything t
 
 Sidenote: in Pico-8, any line of code that begins with `--` is ignored, so it's useful for writing various comments about the code.
 
-With that in mind, let's draw a rectangle.
+With that in mind, let's draw our sprite.
 
 ```lua
 function _draw()
 
- rect(0, 0, 10, 10)
+ spr(1, 0, 0)
 
 end
 ```
-`rect` is what is called a function: some code that can be run at any point. We can also pass information into functions, which is what we're doing in this example. Concretely, `rect` accepts 4 pieces of information (in this order):
- * x coordinate of top-left corner
- * y coordinate of top-left corner
- * x coordinate of bottom-right corner
- * y coordinate of bottom-right corner
-This means that we're drawing a square with the top-left corner at `(0, 0)` and the bottom-right corner at `(10, 10)`.
+`spr` is what is called a function: some code that can be run at any point. We can also pass information into functions, which is what we're doing in this example. Concretely, `spr` accepts 3 pieces of information (in this order):
+ * which sprite your drawing (remember the sprite numbers?)
+ * x coordinate of the top left corner
+ * y coordinate of the top left corner
+This means that we're drawing sprite 1 with the top-left corner at `(0, 0).`
 
   ![](assets/noclear.gif)
 
@@ -81,13 +80,13 @@ When you actually execute this (`Ctrl-R`), you may notice two things: that the s
 function _draw()
 
  cls() -- this clears the screen
- rect(0, 0, 10, 10)
+ spr(1, 0, 0)
 
 end
 ```
 Now every frame will start from a blank screen.
 
-The reason that the square is in the top-left corner is because coordinates actually work a little differently in Pico-8. As is drawn on the cheatshet, the y-axis  is actually flipped: this means that (0, 0) is actually the top-left corner. Remember this.
+The reason that the square is in the top-left corner is because coordinates actually work a little differently in Pico-8. As is drawn on the cheatshet, the y-axis  is actually flipped: this means that `(0, 0)` is actually the top-left corner. Remember this.
 
 ![](assets/coordinate_grid.png)
 
@@ -125,10 +124,10 @@ x = 3
 
 function _draw()
  cls()
- rect(x, 0, 10, 10)
+ spr(1, x, 0)
 end
 ```
-Pico-8 provides another function for the update phase of the game-loop called `_update`. This function is run every loop before the `_draw` function, and so allows us to modify any variables we want. Let's modify the `x` variable so that the square moves to the right:
+Pico-8 provides another function for the update phase of the game-loop called `_update`. This function is run every loop before the `_draw` function, and so allows us to modify any variables we want. Let's modify the `x` variable so that our sprite moves to the right:
 ```lua
 x = 0
 
@@ -138,22 +137,10 @@ end
 
 function _draw()
  cls()
- rect(x, 0, 10, 10)
+ spr(1, x, 0)
 end
 ```
 ![](assets/moving_square.gif)
-
-Notice that the square doesn't move as expected: the right side stays completely still! Remember that this is because the `rect` function takes in the two corners of the rectangle, so in this case we're only moving one of them. The fix for that is to move the other corner with the left one:
-
-```lua
-function _draw()
- cls()
- rect(x, 0, x + 10, 10)
-end
-```
-Now, the right side of the square will always be `10` pixels in front of the left side.
-
-![](assets/moving_square_fix.gif)
 
 ## Values
 A value is anything that you can place into a variable. The most basic type is a number. As you saw earlier, there are also several operations that result in numbers:
