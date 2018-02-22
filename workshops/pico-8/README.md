@@ -404,4 +404,86 @@ end
 
 Now, we can't go off the edge anymore! Try preventing the player from going off the screen by going up or down as well.   
 
-## Making solid tiles
+## Quick detour: Functions
+
+We're going to talk about making our own functions, since our `_update` function is getting really crowded and we still have more to go! 
+
+We've used functions before, like `cls()` and `map()`
+
+Functions are essentially just blocks of code that we group together. When we use a function (when we 'call the function'), we just run all the code inside of it. As an example, consider this code
+```lua
+function prep_screen()
+ cls()
+ map()
+end
+
+function _draw()
+ prep_screen()
+ 
+ spr(1, x, y)
+end
+```
+
+which is exactly the same as this code
+
+```lua
+function _draw()
+ cls()
+ map()
+ 
+ spr(1, x, y)
+end
+```
+
+Functions can also take in arguments--that is, information. As an example, consider `spr.` `spr` takes in three pieces of information (arguments): the sprite number, the x-coordinate of where to draw it, and the y-coordinate of where to draw it. As another example of a simple function, consider this function which takes an x-coordinate and checks if it's in bounds (so it will ensure the x-coordinate is not too far left or right).
+
+```lua 
+function move_in_bounds(x)
+ if x < 0 then
+  x = 0
+ elseif x > 1016 then
+  x = 1016
+ end
+end
+```
+
+However, this function isn't very useful--while it changes the values of `x` and `y,` we can't access those changed values. So, we use a **return** statement. 
+
+```lua
+function move_in_bounds(x)
+ if x < 0 then
+  x = 0
+ elseif x > 1016 then
+  x = 1016
+ end
+ 
+ return x
+end 
+```
+Now, we will change `x` if needed, then return the new value. When we use this function, you can think of Lua as doing the code in this function, and then replacing the function with it's return value. For example,
+
+```lua
+function _update()
+ x = move_in_bounds(x)
+end
+```
+
+will first run the code inside `move_in_bounds,` and then replace `move_in_bounds(x)` with it's return value. So, say we call `move_in_bounds(-4).` Then, the code inside will run, and will the function will return `0.` So the line `x = move_in_bounds(-4)` gets turned into `x = 0.` 
+
+## Making solid tiles: Flags
+
+Right now, our player can walk on water (in your games, they may be able to walk through walls or on something else they shouldn't be able to). We'd like to stop this, but first we need to tell Pico which things the player can and can't walk on. 
+
+We can do this by going back to the sprite editor and setting **flags** on our sprites.
+
+![](assets/sprite_flags.png)
+
+Those eight little buttons next to the sprite are all flags. By default, they all start as off and we can turn them on by clicking them.
+
+To help Pico know which things we can and can't walk on, let's use flags: Flag 0, the leftmost flag, will represent if the tile can be walked on or not. If the flag is off, the player can walk on it, and if the flag is on, the player cannot walk on it.
+
+In my game, I'll turn on flag 1 for my water sprite, and leave it off for the rest of them.
+
+![](assets/toggling_flag.gif)
+
+Now that we've set the flags, we can start programming our collision detection.
