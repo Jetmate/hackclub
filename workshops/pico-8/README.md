@@ -314,6 +314,7 @@ We can fix this in multiple ways: We could try to offset the camera a little so 
 ## Fixing the camera
 
 Let's divide the map into a number of screen sized 'rooms.' We want the camera to display the 'room' the player is currently in, like so:
+
 ![](assets/camera_goal.gif)
 
 To achieve this, we'll need to do two things:
