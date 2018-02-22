@@ -360,6 +360,108 @@ end
 ```
 
 Now, we will have the camera system we wanted!
+
+## Chickens
+
+Our player is fairly lonely. Let's give them some company by adding chickens to the game. The chickens will move around the screen as they please--the player will not be able to control them.
+
+![](assets/chicken_goal.gif)
+
+While I'll be adding chickens to my game, feel free to add whatever type of animal you want to yours--a pig, a cow, or even an asteroid!
+
+Like our player, each chicken needs an x and a y coordinate. Let's see what that might look like:
+
+```lua
+chicken1_x = 45
+chicken1_y = 70
+
+chicken2_x = 60
+chicken2_y = 32
+```
+
+The x and y values I choose were arbitrary--you can make them anywhere on the screen if you want.
+
+Now that we have this, let's start drawing the chicken to the screen. We'll do this using the sprite function from earlier. I use sprite number 6 as my chicken sprite, but you may have yours in a different spot--make sure to check the sprite number before copying this code!
+
+```lua
+chicken_sprite = 6
+
+function _draw()
+ spr(chicken_sprite, chicken1_x, chicken1_y)
+ spr(chicken_sprite, chicken2_x, chicken2_y)
+end
+```
+
+I use `chicken_sprite` instead of 6 when using `spr` to help prevent errors--if I had a typo and accidentally typed 5 in the first call, I'd get some weird looking chickens. Now if I have a typo, for example mistakenly typing `chicken_site` Pico will give me an error since it doesn't know what `chicken_site` is.
+
+Now, my chickens will be on screen, but they won't move at all! (If you can't see your chickens, they might be in a different room--try wandering around your map more, or move the chickens to start in the same room as the player.)
+
+This is because we never change the x and y coordinates of the chickens. We moved the player by reading the key input--but these chickens should move on their own, not be controlled by the player! So, how should we move chickens?
+
+At a high level, we might think of this movement plan:
+ * Pick a random direction the chicken will move in
+ * Move in that direction for a few seconds
+ * Pick a new direction and start again
+
+Let's start by picking random directions. In Pico, we can generate random numbers using the `rnd` function. `rnd` takes an upper bound, and generates random numbers between 0 and the upper bound. For example, `rnd(2)` can generate 0, 1, 0.5923, or 1.94523, but it won't generate 2 (the upper bound isn't included), -0.0532, or 2.52. 
+
+First, I will pick a direction to move horizontally: Left, right, or don't move horizontally. There are three possibilities here, so to capture them all I will use `flr(rnd(3)).` This is because `rnd(3)` will give us a number from 0 to 1, a number from 1 to 2, or a number from 2 to 3. If it gives us a number between 0 and 1, `flr(rnd(3))` will give us 0. If it gives us a number between 1 and 2, `flr(rnd(3))` will give us 1. And if it gives us a number between 2 and 3, `flr(rnd(3))` will give us 2. So, `flr(rnd(3))` will randomly generate either 0, 1, or 2-- three values, each of which corresponds to a direction.
+
+Now, we can add some code to update which moves the chickens randomly in a direction:
+
+```lua
+chicken1_directionx = 0
+
+function _update()
+ chicken1_directionx = flr(rnd(3)) -- pick chicken1's horizontal direction
+ 
+ if chicken1_directionx == 0 then
+  chicken1_x = chicken1_x - 1 -- move left
+ elseif chicken1_directionx == 1 then
+  chicken1_x = chicken1_x + 1 -- move right
+ end -- since a direction of 2 corresponds to not moving, we do nothing in that case
+end
+```
+
+(A clever way of doing the same thing with less code is to do subtract 1 from the direction, and then set `chicken1_x` to `chicken1_x + direction.` Try working out how this does exactly the same thing as the long `if` statement.)
+
+Now that we have horizontal movement, also add in vertical movement.
+
+## Fixing our chicken movement
+
+The movement system from before words, but it looks very artificial and jagged; look at this:
+
+![](assets/chicken_weird.gif)
+
+This is because the chickens randomly pick a new direction to move in after moving just one step in the new direction! Real chickens are not so indecisive; they'll pick a direction and stick with it for a few seconds, before picking a new one.
+
+To deal with this, let's go back to our movement idea:
+ * Pick a random direction the chicken will move in
+ * Move in that direction for a few seconds
+ * Pick a new direction and start again
+
+We're picking a random direction, but we're not moving in it for a few seconds--just for a moment. To fix this, let's also randomly generate a length of time to move in the new direction.
+
+```lua
+chicken1_path_length = 0
+chicken2_path_length = 0
+```
+
+`path_length` will represent the length we're going to travel before changing directions again. So, let's tweak our `_update` function:
+
+```lua
+function _update()
+ if chicken1_path_length > 0 then
+  -- move the chicken according to its direction like before
+  
+  -- now, subtract 1 from path length since our chicken just took 1 step
+  chicken1_path_length = chicken1_path_length - 1
+ else 
+ 
+ end
+end
+```
+
 ## Borders
 
 While the map is big, it's not infinite: 1024 pixels by 512 pixels, to be precise. This can cause issues with our current movement system, as if the player walks too far in any direction, they will go off the screen. We need to stop this!
