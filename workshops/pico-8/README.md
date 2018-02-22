@@ -109,6 +109,7 @@ end
 Now every frame will start from a blank screen.
 
 One thing to note: Coordiantes work a little different in Pico-8. The point `(0, 0)` is in the top left corner, and making the y-coordinate bigger actually makes the point go down, not up.
+
 ![](assets/coordinate_grid.png)
 
 So, the point `(10, 10)` can be thought of as going 10 pixels to the right of the top left pixel, and then going 10 pixels. 
