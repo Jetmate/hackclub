@@ -17,8 +17,8 @@ One common practice is to fullscreen it behind Pico-8, like so:
 ## Let's start!
 Tired of complex workflows and high-definition graphics? Well, the Pico-8 fantasy console is here to help. Through the course of this workshop you will make [this](demos/final.html) action game. Along the way you'll learn how to use the Pico-8 console along with the basics of Lua scripting.
 
-<iframe src="demos/final.html" width="100%" height="700px">
-  <image src="assets/final.gif">
+<iframe src="demos/demo.html" width="100%" height="700px">
+  <image src="assets/demo.gif">
 </iframe>
 
 A couple of basic pieces of information about Pico-8: there are three modes.
