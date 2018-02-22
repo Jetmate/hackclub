@@ -401,6 +401,6 @@ function _update()
 end
 ```
 
-Now, we can't go off the edge anymore!
+Now, we can't go off the edge anymore! Try preventing the player from going off the screen by going up or down as well.   
 
 ## Making solid tiles
