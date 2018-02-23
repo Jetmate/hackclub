@@ -144,24 +144,24 @@ x = 3 + 1 -- x is now 4
 ```
 We can use this in our code by making an `x` variable and then changing it periodically.
 ```lua
-x = 3
+player_x = 3
 
 function _draw()
  cls()
- spr(1, x, 10)
+ spr(1, player_x, 10)
 end
 ```
-Pico-8 provides another function for the update phase of the game-loop called `_update`. This function is run every loop before the `_draw` function, and so allows us to modify any variables we want. Let's modify the `x` variable so that our sprite moves to the right:
+Pico-8 provides another function for the update phase of the game-loop called `_update`. This function is run every loop before the `_draw` function, and so allows us to modify any variables we want. Let's modify the `player_x` variable so that our sprite moves to the right:
 ```lua
-x = 0
+player_x = 0
 
 function _update()
- x = x + 1 -- increment x by 1
+ player_x = player_x + 1 -- increment x by 1
 end
 
 function _draw()
  cls()
- spr(1, x, 10)
+ spr(1, player_x, 10)
 end
 ```
 ![](assets/moving_face.gif)
@@ -212,27 +212,27 @@ As shown on the cheatsheet, `btn` accepts a number (0-6) that denotes a keyboard
 ```lua
 function _update()
  if btn(1) then
-  x = x + 1
+  player_x = player_x + 1
  end
 end
 ```
 Now, every frame, Pico checks if the right button is pressed, and if so increases the x. Here is the complete code with the other direction added:
 
 ```lua
-x = 0
-y = 0
+player_x = 0
+player_y = 0
 
 function _update()
  if btn(1) then -- right
-  x = x + 1
+  player_x = player_x + 1
  elseif btn(0) then -- left
-  x = x - 1
+  player_x = player_x - 1
  end
 end
 
 function _draw()
  cls()
- spr(1, x, y)
+ spr(1, player_x, player_y)
 end
 ```
 
@@ -263,7 +263,7 @@ To do this, we're going to start drawing our map to the game. We can do this in 
 ```lua
 function _draw()
  cls()
- spr(1, x, y)
+ spr(1, player_x, player_y)
  
  map()
 end
@@ -278,7 +278,7 @@ function _draw()
  cls()
  map()
  
- spr(1, x, y)
+ spr(1, player_x, player_y)
 end
 ```
 
@@ -300,7 +300,7 @@ So, we need to move the camera around with the player. One way of doing it might
 
 ```lua
 function _update()
- camera(x, y) -- move the camera to (x, y), the same place the player is
+ camera(player_x, player_y) -- move the camera to (player_x, player_y), the same place the player is
 end
 ```
 
@@ -330,7 +330,7 @@ The starting room the player is in has a top left corner of `(0, 0).` If the pla
 
 ```lua
 function _update()
- roomx = flr(x / 128)
+ roomx = flr(player_x / 128)
 end
 ```
 
@@ -339,20 +339,20 @@ The `flr` function stands for floor, and just means to round down to the nearest
 Then, we multiply this number by 128.
 ```lua
 function _update()
- roomx = flr(x / 128)
+ roomx = flr(player_x / 128)
  roomx = roomx * 128
 end
 ```
-Thus, if you're at an x-coordinate of 134, the first line will set `roomx` to 1, and the next line will set `roomx` to 128. More generally, the first line of code will find out how many rooms to the right you've gone, and then the next line of code will multiply that number by 128, since each room is 128 pixels wide. This will help us find the x coordinate of the top left corner of the room: First, we find which room we're talking about by doing `flr(x / 128),` and then we multiply by 128 since each room is 128 pixels wide.
+Thus, if you're at an x-coordinate of 134, the first line will set `roomx` to 1, and the next line will set `roomx` to 128. More generally, the first line of code will find out how many rooms to the right you've gone, and then the next line of code will multiply that number by 128, since each room is 128 pixels wide. This will help us find the x coordinate of the top left corner of the room: First, we find which room we're talking about by doing `flr(player_x / 128),` and then we multiply by 128 since each room is 128 pixels wide.
 
 We can do something similar to find the y-coordinate (try and figure it out yourself before checking our code) and then set the camera to this `(roomx, roomy)` coordinate.
 
 ```lua
 function _update()
- roomx = flr(x / 128)
+ roomx = flr(player_x / 128)
  roomx = roomx * 128
  
- roomy = flr(y / 128)
+ roomy = flr(player_y / 128)
  roomy = roomy * 128
  
  camera(roomx, roomy)
@@ -360,6 +360,74 @@ end
 ```
 
 Now, we will have the camera system we wanted!
+
+## Quick detour: Functions
+
+We're going to talk about making our own functions, since our `_update` function is getting really crowded and we still have more to go! 
+
+We've used functions before, like `cls()` and `map()`
+
+Functions are essentially just blocks of code that we group together. When we use a function (when we 'call the function'), we just run all the code inside of it. As an example, consider this code
+```lua
+function prep_screen()
+ cls()
+ map()
+end
+
+function _draw()
+ prep_screen()
+ 
+ spr(1, player_x, player_y)
+end
+```
+
+which is exactly the same as this code
+
+```lua
+function _draw()
+ cls()
+ map()
+ 
+ spr(1, player_x, player_y)
+end
+```
+
+Functions can also take in arguments--that is, information. As an example, consider `spr.` `spr` takes in three pieces of information (arguments): the sprite number, the x-coordinate of where to draw it, and the y-coordinate of where to draw it. 
+Functions can also return information, making it avaliable to us. 
+
+Let's see an example. Earlier, we had some code which computed the corner of the room the player was in. Let's make some functions which take a point's coordinates, and returns the corner of the room the point is in. This way, in our `_update` function, we can use these two smaller functions.
+
+```lua
+function room_corner_x(x, y) -- this function takes in an x value and a y value
+ roomx = flr(x / 128)
+ roomx = roomx * 128
+ return roomx
+end
+
+function room_corner_y(x, y)
+ roomy = flr(y / 128)
+ roomy = roomy * 128
+ return roomy
+end
+
+function _update()
+ camera(room_corner_x(player_x, player_y), room_corner_y(player_x, player_y))
+end
+```
+
+So, when we run `_update,` it will ask `room_corner_x` to compute the x coordinate of the room, and then `room_corner_y` to compute the y coordinate of the room. Say that `room_corner_x` finds a value of 128 and `room_corner_y` a value of 256. Then, the line of code 
+
+```lua
+camera(room_corner_x(player_x, player_y), room_corner_y(player_x, player_y))
+```
+
+will be replaced with
+
+```lua
+camera(128,  256)
+```
+
+Functions can be helpful when we have a lot of code, and soon we'll see very powerful things functions can do.
 
 ## Chickens
 
@@ -457,121 +525,210 @@ function _update()
   -- now, subtract 1 from path length since our chicken just took 1 step
   chicken1_path_length = chicken1_path_length - 1
  else 
- 
+  -- pick a new direction for the chicken like before
+  
+  -- now, randomly generate a path length
+  chicken1_path_length = flr(rnd(30)) + 10
  end
 end
 ```
+
+I added 10 to `flr(rnd(30))` so that it isn't too small--this way, I know that the path will always be at least 10 steps long. Feel free to change the numbers 10 and 30 as you please to make the movement fit well with your game and the object you're making.
+
+## Tables: A place to keep all of your chicken information
+
+Our chicken movement looks smooth, but our code is a little messy: I have a lot of variables starting with `chicken1` or `chicken2,` and adding a third chicken would be a nightmare: I'd have to add a lot more variables and add a lot of code to our `_update` and `_draw` functions to take care of the chicken. To help make this easier, I'm going to use a combination of **tables** and **functions** (remember functions?). 
+
+First, what is a table? A table is essentially a collection of related variables. 
+
+Let's see an example:
+
+```lua
+chicken1 = {} -- use this to tell Pico that my_cool_table is, in fact, a table
+chicken1.x = 30
+chicken1.y = 52
+chicken1.directionx = 0
+chicken1.directiony = 0
+chicken1.path_length = 0
+```
+
+In the example, `chicken1` is a table holding a few variables: `x, y, directionx, directiony,` and `path_length.` All of these variables are related to `chicken1` and so we're grouping them together.
+
+**Warning:** We can't just say `x` or `y` to use the variables inside `chicken1.` We have to say `chicken1.x` and `chicken1.y` to tell Pico to look for x and y inside of the `chicken1` table.
+
+We can use functions to automate this a little. We know that each chicken has a x coordinate, y coordinate, a direction, and a path length. So, I will make a function which takes in this information and gives back a table containing it all.
+
+```lua
+function make_chicken(x, y, directionx, directiony, path_length)
+ new_chicken = {} -- tell Pico that new_chicken will be a table
+ new_chicken.x = x
+ new_chicken.y = y
+ new_chicken.directionx = directionx
+ new_chicken.directiony = directiony
+ new_chicken.path_length = path_length
+end
+```
+
+One important thing to note is that, in the line `new_chicken.x = x,` the code `new_chicken.x` refers to the x value inside of the `new_chicken` table, whereas the code `x` on the rightside refers to the value for `x` that our function recieves (the argument). 
+
+Now, we can replace all of our chicken variables with the following two lines of code:
+
+```lua
+chicken1 = make_chicken(30, 50, 0, 0, 0)
+chicken2 = make_chicken(30, 10, 0, 0, 0)
+```
+
+## Chicken Functions
+
+Now that we have chicken tables, let's make some chicken functions!
+
+Remember all the code we used to move a chicken? For each new chicken we make, we'd have to add all that code to `_update` but with the new chicken's name. To save ourselves some time, let's put that code into a function:
+
+```lua
+function move_chicken(chicken)
+ if chicken.path_length > 0 then
+  if chicken.directionx == 0 then
+   chicken.x = chicken.x - 1
+  elseif chicken.directionx == 1 then
+   chicken.x = chicken.x + 1
+  end
+  
+  if chicken.directiony == 0 then
+   chicken.y = chicken.y - 1
+  elseif chicken.directiony == 1 then
+   chicken.y = chicken.y + 1
+  end
+  
+  chicken.path_length = chicken.path_length - 1
+ else 
+  chicken.directionx = flr(rnd(3))
+  chicken.directiony = flr(rnd(3))
+  
+  chicken.path_length = flr(rnd(30)) + 10
+ end
+end
+
+function _update()
+ -- instead of our old chicken movement code, now we just have these two lines:
+ move_chicken(chicken1)
+ move_chicken(chicken2)
+end
+```
+
+We can do something similar with `_draw` to make our lives easier:
+
+```lua
+function draw_chicken(chicken)
+ spr(chicken_sprite, chicken.x, chicken.y)
+end
+
+function _draw(chicken)
+ -- instead of our spr calls, we can just use this:
+ draw_chicken(chicken1)
+ draw_chicken(chicken2)
+end
+```
+
+Now, adding more chickens is easier than before--but still not as easy as possible. I'd like to just be able to use one function, `make_chicken,` to create a new chicken, and then never have to worry about that chicken again--have the code do everything. For that, we'll need...
+
+## A table of chickens
+
+A table holds a group of related variables. Our `chicken1` and `chicken2` variables are related, so let's put them in a table together:
+
+```lua
+chickens = {}
+chickens.chicken1 = chicken1
+chickens.chicken2 = chicken2
+```
+
+Now, we can use a powerful function called `foreach.` 
+
+```lua
+function _update()
+ foreach(chickens, move_chicken)
+end
+
+function _draw()
+ foreach(chickens, draw_chicken)
+end
+```
+
+`foreach(chickens, move_chicken)` means to do `move_chicken` for each chicken inside of the table `chickens.` So, if we only had `chicken1` and `chicken2` inside of `chickens,` the line
+
+```lua
+foreach(chickens, move_chicken)
+```
+
+would be replaced with
+
+
+```lua
+move_chicken(chickens.chicken1)
+move_chicken(chickens.chicken2)
+```
+
+This makes adding more chickens much easier: Now, instead of having to type `move_chicken(chicken3)` in my `_update` function and then `draw_chicken(chicken3)` in the `_draw` function, I can just add `chicken3` to the `chickens` table and Pico will take care of the rest!
+
+This is much better than before, but we're not quite at what I wanted: I want `make_chicken` to do all the work, so I don't have to manually add the code which adds my new chicken to the `chickens` table.
+
+However, we're at a dilemma with implementing this: `make_chicken` has no way of knowing how many chickens are in the table--it doesn't know if it should add the new chicken to `chickens.chicken3,` `chickens.chicken4,` or `chickens.chicken500.`
+
+Luckily, Pico has a workaround: The `add` function. `add(chickens, new_chicken)` will put `new_chicken` at the end of the `chickens` table. So, we just need to add that one line of code to `make_chicken`, and then whenever we want to make a new chicken, we just use `make_chicken` and Pico will do the rest for us!
+
+## Loops
+
+Let's say I want to have 10 chickens in my game. Before, I'd have to add a lot of code. Now, at the start, I just do
+
+```lua
+make_chicken(0, 0, 0, 0, 0)
+make_chicken(10, 10, 0, 0, 0)
+make_chicken(20, 20, 0, 0, 0)
+make_chicken(30, 30, 0, 0, 0)
+make_chicken(40, 40, 0, 0, 0)
+make_chicken(50, 50, 0, 0, 0)
+make_chicken(60, 60, 0, 0, 0)
+make_chicken(70, 70, 0, 0, 0)
+make_chicken(80, 80, 0, 0, 0)
+make_chicken(90, 90, 0, 0, 0)
+```
+
+However, that's still a lot more code than I want. I'd like a function `make_chickens` which takes in a number of chickens, and then makes that many chickens and places them randomly on my map.
+
+How should we do that? Well, to add a chicken at a random location, we'd use
+
+```lua
+make_chicken(rnd(128), rnd(128), 0, 0, 0)
+```
+
+This will pick a random point in the first room, and add make a chicken there. (If you want your chickens to spawn all over the place, just change `rnd(128), rnd(128)` to `rnd(1024), rnd(512)` since the map is 1024 pixels by 512 pixels.)
+
+Now, I want this code to run a number of times depending on what number I give my `make_chickens` function. To do this, I will use a `for` loop.
+
+```lua
+function make_chickens(number_of_chickens)
+ for i=1, number_of_chickens do
+  make_chicken(rnd(128), rnd(128), 0, 0, 0)
+ end
+end
+```
+
+A `for` loop will run multiple times. Note how we said `i=1, number_of_chickens.` This means that it will create a counter starting at 1, run the code indented below `for` statement and before the `end`, then advance the counter to 2, run the code again, ..., until it finally advances the counter past `number_of_chickens,` at which point it stops.
+
+We can use the counter variable inside the body of our loop if we so desire, but we can't use it before or after the loop.
+
+So, now my 10 chickens can be added with just one line of code:
+
+```lua
+make_chickens(10)
+```
+
+Talk about easy!
+
+![](assets/chicken_party.png)
 
 ## Borders
 
-While the map is big, it's not infinite: 1024 pixels by 512 pixels, to be precise. This can cause issues with our current movement system, as if the player walks too far in any direction, they will go off the screen. We need to stop this!
-
-First, let's stop the player from moving too far left or too far right.
-
-Once again, try to implement this yourself and then compare your solution with ours. Remember that one problem can have many solutions--so even if your solution does not look exactly like ours, it still might be valid. Just be sure to carefull test it (try all four edges: top, left, right, bottom, and top). 
-
-One naive way might be the following:
-
-```lua
-function _update()
- -- our input code from earlier goes here
-
- if x < 0 then
-  x = 0
- end
- if x >= 1024 then
-  x = 1024
- end
-end
-```
-There is a problem with this code, however, which is that the player can actually still go off the map. The reason that this happens has to due with how coordinates in Pico work.
-
-![](assets/smiley_edge.gif)
-
-Because the coordinates refer to the left hand corner, it is still possible to go a little bit left of the edge. As our sprite is 8 pixels wide, we have to go 7 pixels further to get to the right side of our sprite-- so `(x + 7, y)` would refer to the top right corner of our sprite.
-
-So, we need to make sure `(x + 7, y)` is left of the edge, not `(x, y).` To do this, we only slightly tweak our code. Let's think about where the edge will be. The pixel `(0, 0)` is the top left pixel of the map, and the pixel `(1023, 0)` will be the pixel at top right (note that it's 1023, not 1024--this is because the pixels with an x-coordiante of 0 still take up space on the screen. So the pixel `(1, 0)` actually means the pixel in the second column of pixels, and `(1023, 0)` actually means the pixel in the 1024th column). So, we need to make sure that `x + 7 <= 1023.` Subtracting 7, this is the same as making sure `x <= 1016.` 
-
-Here is the updated code:
-
-```lua
-function _update()
- if x < 0 then
-  x = 0
- end
- if x > 1016 then -- if x is larger than 1016, move it back to 1016
-  x = 1016
- end
-end
-```
-
-Now, we can't go off the edge anymore! Try preventing the player from going off the screen by going up or down as well.   
-
-## Quick detour: Functions
-
-We're going to talk about making our own functions, since our `_update` function is getting really crowded and we still have more to go! 
-
-We've used functions before, like `cls()` and `map()`
-
-Functions are essentially just blocks of code that we group together. When we use a function (when we 'call the function'), we just run all the code inside of it. As an example, consider this code
-```lua
-function prep_screen()
- cls()
- map()
-end
-
-function _draw()
- prep_screen()
- 
- spr(1, x, y)
-end
-```
-
-which is exactly the same as this code
-
-```lua
-function _draw()
- cls()
- map()
- 
- spr(1, x, y)
-end
-```
-
-Functions can also take in arguments--that is, information. As an example, consider `spr.` `spr` takes in three pieces of information (arguments): the sprite number, the x-coordinate of where to draw it, and the y-coordinate of where to draw it. As another example of a simple function, consider this function which takes an x-coordinate and checks if it's in bounds (so it will ensure the x-coordinate is not too far left or right).
-
-```lua 
-function move_in_bounds(x)
- if x < 0 then
-  x = 0
- elseif x > 1016 then
-  x = 1016
- end
-end
-```
-
-However, this function isn't very useful--while it changes the values of `x` and `y,` we can't access those changed values. So, we use a **return** statement. 
-
-```lua
-function move_in_bounds(x)
- if x < 0 then
-  x = 0
- elseif x > 1016 then
-  x = 1016
- end
- 
- return x
-end 
-```
-Now, we will change `x` if needed, then return the new value. When we use this function, you can think of Lua as doing the code in this function, and then replacing the function with it's return value. For example,
-
-```lua
-function _update()
- x = move_in_bounds(x)
-end
-```
-
-will first run the code inside `move_in_bounds,` and then replace `move_in_bounds(x)` with it's return value. So, say we call `move_in_bounds(-4).` Then, the code inside will run, and will the function will return `0.` So the line `x = move_in_bounds(-4)` gets turned into `x = 0.` 
+do this
 
 ## Making solid tiles: Flags
 
