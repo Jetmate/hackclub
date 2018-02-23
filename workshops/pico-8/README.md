@@ -716,10 +716,10 @@ A `for` loop will run multiple times. Note how we said `i=1, number_of_chickens.
 
 We can use the counter variable inside the body of our loop if we so desire, but we can't use it before or after the loop.
 
-So, now my 10 chickens can be added with just one line of code:
+So, now my 9 chickens can be added with just one line of code:
 
 ```lua
-make_chickens(10)
+make_chickens(9)
 ```
 
 Talk about easy!
