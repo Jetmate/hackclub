@@ -728,7 +728,126 @@ Talk about easy!
 
 ## Borders
 
-do this
+Our game is feeling lively now: There's chickens, a player, and great island. Except, the player currently can leave the island and enter an infinite void of darkness...
+
+![](assets/depressing_void.gif)
+
+Why is this happening? Well, our map is only so big. When I moved the player above the top of the map, the game had no idea what that area looks like, so it drew nothing. We'll need to prevent the player from leaving the map.
+
+Remember how coordinates work in Pico? Here's a quick refresher:
+
+![](assets/coordinate_grid.png)
+
+The top left corner is (0, 0), and going up makes your y-coordinate go down. So, if we go up above the very top of the screen, our why coordinate will go down below 0. So, to prevent you from leaving the screen from the side, let's prevent your y-coordinate below 0. 
+
+```lua
+function _update()
+ -- get input and move the player like before
+ 
+ if player_y < 0 then -- if the player went too far up
+  player_y = 0 -- send the player back to the edge
+ end
+end
+```
+
+However, the player can still exit the map from the right, left, or bottom. Try to fix this yourself, remembering that the map is 1024 pixels wide by 512 pixels tall (if you didn't use all of the map, you might want to make these bounds smaller).
+
+One solution might be this:
+
+```lua
+function _update()
+ if player_x < 0 then
+  player_x = 0
+ elseif player_x > 1024 then
+  player_x = 1024
+ end
+
+ if player_y < 0 then
+  player_y = 0
+ elseif player_y > 512 then
+  player_y = 512
+ end
+end
+```
+
+However, this code has a very subtle flaw...
+
+![](assets/half_off.gif)
+
+Remember that `(player_x, player_y)` is just the top left corner of the player. So, this code will only check if the player's top left corner is good, not the entire player. This works fine for the top and left sides of the screen, but not the bottom or right sides since it's possible for the bottom pixels of the player to be past the line without this code picking up on it.
+
+So, we shouldn't check if `player_y > 512.` We should check if `player_y + 8 > 512` (since the player is 8 pixels wide), meaning we want `player_y > 504.` So, we can change our code like so:
+
+```lua
+function _update()
+ if player_x < 0 then
+  player_x = 0
+ elseif player_x > 1016 then
+  player_x = 1016
+ end
+
+ if player_y < 0 then
+  player_y = 0
+ elseif player_y > 504 then
+  player_y = 504
+ end
+end
+```
+
+Now it works!
+
+However, we've got an awful lot of chickens that can still move into the void. The whole point of the last few sections was to get a lot of chickens with very little code--so having to type this out for each chicken would waste all our old work!
+
+Let's think about how we got so many chickens with very little code. We used functions and `foreach` to do the gruntwork for us.
+
+So, let's do that again. I'll make a function `bound` which takes in a chicken, checks if it's inside the boundaries, and moves it inside if it's not. It's almost exactly the same as the code above:
+
+```lua
+function bound(character) 
+ if character.x < 0 then
+  character.x = 0
+ elseif character.x > 1016 then
+  player_x = 1016
+ end
+
+ if character.y < 0 then
+  character.y = 0
+ elseif character.y > 504 then
+  character.y = 504
+ end
+end
+```
+
+Now, we just use `foreach` like before:
+
+```lua
+function _update()
+ -- move the chickens
+ 
+ foreach(chickens, bound)
+end
+```
+
+## Making the player a table
+
+We use tables to group related variables. `player_x` and `player_y` are related, so why not group them? 
+
+```lua
+player = {}
+player.x = 0 -- this will be the starting position of the player; feel free to change
+player.y = 0
+```
+
+The advantage to doing this is now our `bound` function works with the player. This is because `bound` **doesn't care what type of table (chicken or player) you give it, it just cares if that table has an `x` and a `y` variable.** This means that we can use `bound` on the player, too!
+
+```lua
+function _update()
+ -- move the player and chickens
+ 
+ bound(player) -- bound the player
+ foreach(chickens, bound) -- bound each chicken
+end
+```
 
 ## Making solid tiles: Flags
 
