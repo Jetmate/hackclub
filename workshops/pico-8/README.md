@@ -726,6 +726,12 @@ Talk about easy!
 
 ![](assets/chicken_party.png)
 
+## Editor tabs
+
+move all your chicken functions to one tab so it's easier to read pls
+
+TODO: this
+
 ## Borders
 
 Our game is feeling lively now: There's chickens, a player, and great island. Except, the player currently can leave the island and enter an infinite void of darkness...
@@ -866,3 +872,121 @@ In my game, I'll turn on flag 1 for my water sprite, and leave it off for the re
 ![](assets/toggling_flag.gif)
 
 Now that we've set the flags, we can start programming our collision detection.
+
+## Collision detection
+
+## Enemies: A plan
+
+We have friendly chickens, so why not add some unfriendly chickens?
+
+<image of bad chicken>
+  
+My goal for these unfriendly chickens is the following:
+
+* The squares randomly walk around the map until they're in the same room as the player
+* If they're in the same room as the player, they move towards the player
+* If they touch the player, they do a little damage to the player and then explode
+
+Here's an example of what I want to happen:
+
+<gif of chicken attack>
+
+## Tables of enemies
+
+'member chickens? that, but with enemies
+
+## Chasing the player
+
+first version:
+
+```lua
+function charge_player(enemy)
+	if player.x > enemy.x then
+		enemy.dirx = 1
+	elseif player.x < enemy.x then
+	 enemy.dirx = -1
+	else
+	 enemy.dirx = 0
+	end
+	
+	if player.y > enemy.y then
+		enemy.diry = 1
+	elseif player.y < enemy.y then
+	 enemy.diry = -1
+	else
+	 enemy.diry = 0
+	end
+end
+```
+
+but oh no we can get chickens stuck shit
+
+<image of stuck chicken>
+
+hmm how can this happen
+
+well when the chicken has the right x-coordinate but moving y-coordinate causes him to move into obstacle (or other way)
+
+let's fix this by telling the chicken to just move until there's no more obstacle  
+  
+```lua
+if enemy.dirx == 0 and enemy.y != py then
+ enemy.stuckx = true
+ move_to(px - 1, py, enemy)
+else
+ enemy.stuckx = false
+end
+	
+if enemy.diry == 0 and enemy.x != px then 
+ enemy.stucky = true
+ move_to(px, py - 1, enemy)
+else
+ enemy.stucky = false
+end
+```
+
+and then
+
+```lua
+function charge_player()
+ -- previous stuff
+ 
+ if enemy.stuckx then
+	 enemy.dirx = 0
+ end
+  
+ if enemy.stucky then
+	enemy.diry = 0
+ end
+end
+```
+
+simple, good enough... BUT SHIT
+
+what if he can't go left no more... poor little chicken gets stuck
+
+change the code to start moving right if left gets us stuck (same for up/down) use the fixx, fixy system
+
+
+poor little chicko still can't handle corners!!!!!
+(think about why our collision code can't handle them)
+
+let's fix it (do stuckcorner thing)
+
+## Exploding
+
+note: 
+
+```lua
+function touching(e1, e2)
+	xgood = abs(e1.x - e2.x) < 8
+	ygood = abs(e1.y - e2.y) < 8
+	return xgood and ygood
+end
+```
+
+is probably an easy to understand collision function
+
+## Health
+
+## Health bar
