@@ -904,7 +904,7 @@ end
 
 In our map editor, we can view the map coordinates of each sprite at the bottom of the screen:
 
-!()[assets/map_coordinates.png]
+![](assets/map_coordinates.png)
 
 Hmm. So, we need to convert `(x, y)` from pixel coordinates to map coordinates. How should we do this?
 
@@ -988,7 +988,7 @@ Done! Now, the chickens. Their movement happens in a the `move_chicken` function
 
 Our collision code is done! Let's play:
 
-!()[assets/broken_collisions.gif]
+![](assets/broken_collisions.gif)
 
 Shoot. It only works half the time?
 
@@ -1027,7 +1027,7 @@ The first four lines will check if each corner is solid, and store the answer in
 
 Let's test this out:
 
-!()[assets/almost_collision.gif]
+![](assets/almost_collision.gif)
 
 Uh oh! I can't go to the edge, just one pixel away from it. My corner locations were wrong--`(x + 8, y)` isn't actually the top right corner. To see this, note that `(x, y)` is the top left pixel of my player. So, `(x + 8, y)` is the pixel 8 pixels away from that pixel. This means that a sprite with corners at `(x, y)` and `(x + 8, y)` would be 9 pixels wide, not 8. We have 1 pixel from `(x, y)`, plus 8 more since `(x + 8, y)` is 8 pixels away, giving us 9 pixels total. So, we'd actually want to use `(x + 7, y)`. Similary we change all the 8's to 7's to get the desired effect.
 
