@@ -873,7 +873,192 @@ In my game, I'll turn on flag 1 for my water sprite, and leave it off for the re
 
 Now that we've set the flags, we can start programming our collision detection.
 
-## Collision detection
+## Collision detection: Planning
+
+Let's make a high level plan for how our collision detection should work. Say we want to move an object to some point (x, y). Before moving it, we should:
+
+* Check if (x, y) is clear--nothing (like ocean) blocking it
+* If it is, move them there
+* Otherwise, don't move them
+
+Right now, I'm only going to check if (x, y) is on a part of the map we don't want to touch, like water. Later, when we implement enemies, we'll talk about how to check if (x, y) is inside of the player or a chicken. 
+
+I'd also like my collision detection to be in it's own general function, just like `bound` was. I'll call this function `move_to`. It will take a point and an actor, and move the actor to the point if it can.
+
+## Collision detection, now with code!
+
+Alright, so now let's program our `move_to` function. 
+
+First, we need to figure out if `(x, y)` is a point we can move on or not. For this, we're going to use two functions: `mget` and `fget`. `mget` will return which type of sprite (remember sprite numbers?) is at a point on the map, and `fget` will help us figure out which flags are on or off in a sprite if we give it a sprite number. So, we use `mget` to find which sprite (x, y) is, and then use `fget` to check if that sprite is solid or not (remember how we used flag 0 to tell Pico which tiles were solid?)
+
+So, we might try this:
+
+```lua
+function move_to(x, y, actor) -- actor could be a player, a chicken, or something else we add in the future
+ sprite = mget(x, y)
+ solid = fget(sprite, 0)
+end
+```
+
+`solid = fget(sprite, 0)` will return `true` if flag 0 is turned on, and `false` if it is turn off. However, this code has a very subtle flaw--`(x, y)` returns to coordinates in terms of pixels. If I give you the point `(124, 312)` it means to go 124 pixels right, and then 312 pixels down. But `mget` takes map coordinates, which mean you should 124 sprites right, and then 312 sprites down--to a much different point!
+
+In our map editor, we can view the map coordinates of each sprite at the bottom of the screen:
+
+!()[assets/map_coordinates.png]
+
+Hmm. So, we need to convert `(x, y)` from pixel coordinates to map coordinates. How should we do this?
+
+Let's look at an example. The pixels at `(0, 0), (4, 7), (7, 3)` are all inside the top left sprite. This is because they each tell us to move an amount of pixels right that is smaller than 8 and an amount of pixels down smaller than 8. To pass into a new tile, we'd need to move at least 8 pixels. This is key to our solution: To convert, we use `flr(x / 8)` and `flr(y / 8)`. (Remember that `flr` just means round down.) This is because `flr(x / 8)` will tell us how many groups of 8 pixels we've moved right--in other words, how many tiles right we've moved. So, we can now fix our code:
+
+```lua
+function move_to(x, y, actor)
+ sprite = mget(flr(x / 8), flr(y / 8))
+ solid = fget(sprite, 0)
+end
+```
+
+Now, we should only move the actor if the sprite is not solid.
+
+```lua
+function move_to(x, y, actor)
+ sprite = mget(flr(x / 8), flr(y / 8))
+ solid = fget(sprite, 0)
+ 
+ if not(solid) then
+  -- (x, y) is fine to move too
+  actor.x = x
+  actor.y = y
+ end
+end
+```
+
+Note the `not(solid)` in the `if` statement. `not` is a function which returns the opposite of a `true` or `false` value-- so `not(true)` would be `false` and `not(false)` would be true. 
+
+Now, we slightly tweak how movement works. For the player, our current code looks as so:
+```lua
+function _update()
+ if btn(0) then
+  player.x = player.x - 1
+ end
+ 
+ if btn(1) then
+  player.x = player.x + 1
+ end
+ 
+ if btn(2) then
+  player.y = player.y - 1
+ end
+ 
+ if btn(3) then
+  player.y = player.y + 1
+ end
+end
+```
+
+Instead of doing that, I'll store a potential position, and then use `move_to` to check.
+
+```lua
+function_update()
+ potentialx = player.x
+ potentialy = player.y
+ 
+ if btn(0) then
+  potentialx = potentialx - 1
+ end
+ 
+ if btn(1) then
+  potentialx = potentialx + 1
+ end
+ 
+ if btn(2) then
+  potentialy = potentialy - 1
+ end
+ 
+ if btn(3) then
+  potentialy = potentialy + 1
+ end
+ 
+ move_to(potentialx, potentialy, player)
+end
+```
+
+Done! Now, the chickens. Their movement happens in a the `move_chicken` function. Try modifying that function to use `move_to` instead of moving the chicken directly.
+
+## Let's go down!
+
+Our collision code is done! Let's play:
+
+!()[assets/broken_collisions.gif]
+
+Shoot. It only works half the time?
+
+Let's think about what's happening. Remember that `player.x` and `player.y`refer to the **top left corner** of the player. So, when we say `move_to(x, y, player)` we only check if the top left corner of the player will go to a valid spot--not if every part of the player will!
+
+To fix this, I'm going to first add a second function, `on_solid`, which checks if a point is on a solid sprite:
+
+```lua
+function on_solid(x, y)
+ sprite = mget(flr(x / 8), flr(y / 8))
+ solid = fget(sprite, 0)
+ return solid -- give back solid to whoever uses this function
+end
+```
+
+Now, I'll modify `move_to` a little. Instead of just checking `(x, y)` I will have it also check the other three corners of the actor. 
+
+Wait, where are the other three corners of the actor, if the top left corner is `(x, y)`? Remembering that the sprites in Pico are 8 pixels by 8 pixels, it might be temping to say those other corners are at `(x + 8, y), (x + 8, y + 8),` and `(x, y + 8).` 
+This is wrong for a subtle reason. Let's implement the rest of our collision code, then see why:
+
+```lua
+function move_to(x, y, actor)
+ corner1 = on_solid(x, y)
+ corner2 = on_solid(x + 8, y)
+ corner3 = on_solid(x + 8, y + 8)
+ corner3 = on_solid(x, y + 8)
+ 
+ if not(corner1) and not(corner2) and not(corner3) and not(corner4) then
+  actor.x = x
+  actor.y = y
+ end
+end
+```
+
+The first four lines will check if each corner is solid, and store the answer in the variables `corner1` through `corner4`. Then, we check that *each corner* is not solid before moving. (Question to you: Why can I just check corners instead of having to check every single pixel of the player?)
+
+Let's test this out:
+
+!()[assets/almost_collision.gif]
+
+Uh oh! I can't go to the edge, just one pixel away from it. My corner locations were wrong--`(x + 8, y)` isn't actually the top right corner. To see this, note that `(x, y)` is the top left pixel of my player. So, `(x + 8, y)` is the pixel 8 pixels away from that pixel. This means that a sprite with corners at `(x, y)` and `(x + 8, y)` would be 9 pixels wide, not 8. We have 1 pixel from `(x, y)`, plus 8 more since `(x + 8, y)` is 8 pixels away, giving us 9 pixels total. So, we'd actually want to use `(x + 7, y)`. Similary we change all the 8's to 7's to get the desired effect.
+
+Finally! Right?
+
+## Let's go up and left!
+
+Our code still has a small problem. Say we want to go both up and left at the same time. This is fine. But the tile to our upper left is solid, so we can't walk there--no biggy, `move_to` just won't move us. But what if the tile to our immediate left is fine? Instead of moving left, we just won't move at all. I'd like pressing left to move me left whenever possible. 
+
+So, I'll change my collision code one last time. Instead of checking if it can move me on the x-axis and the y-axis at the same time, I'll have it first check the x-axis and then check the y-axis.
+
+```lua
+function move_to1(x, y, actor)
+ corner1 = on_solid(x, y)
+ corner2 = on_solid(x + 8, y)
+ corner3 = on_solid(x + 8, y + 8)
+ corner3 = on_solid(x, y + 8)
+ 
+ if not(corner1) and not(corner2) and not(corner3) and not(corner4) then
+  actor.x = x
+  actor.y = y
+ end
+end
+
+function move_to2(x, y, actor)
+ move_to_partial(x, actor.y, actor)
+ move_to_partial(actor.x, y, actor)
+end
+```
+
+Let's see what I did here. `move_to1` is just our old `move_to` function. The new `move_to2` function will first move the actor on the x-axis using our old code, and then move them on the y-axis using our old code. This way, we can choose whether or not we want the `move_to1` style movement or the `move_to2` style movement (and it also made writing `move_to2` really quick!). I prefer using `move_to2` but feel free to use what fits best with your game. 
 
 ## Enemies: A plan
 
@@ -990,3 +1175,5 @@ is probably an easy to understand collision function
 ## Health
 
 ## Health bar
+
+## Flags, again: Spikes and lava
