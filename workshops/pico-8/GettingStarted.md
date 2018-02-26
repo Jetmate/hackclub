@@ -1,4 +1,15 @@
-## Let's start!
+## Getting Started
+This workshop requires a copy of [Pico-8](https://www.lexaloffle.com/pico-8.php), which unfortunately costs $15. The good news is that Pico-8 is DRM-free, which means that you can share one license with your whole club.
+
+It is also strongly recommended that you download this wonderful cheatsheet:
+
+![](assets/cheatsheet.png)
+
+One common practice is to fullscreen it behind Pico-8, like so:
+
+![](assets/pico_with_cheatsheet.png)
+
+## Let's go!
 Tired of complex workflows and high-definition graphics? Well, the Pico-8 fantasy console is here to help. Through the course of this workshop you will make [this](demos/final.html) action game. Along the way you'll learn how to use the Pico-8 console along with the basics of Lua scripting.
 
 <iframe src="demos/demo.html" width="100%" height="700px">
