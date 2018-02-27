@@ -181,12 +181,13 @@ First, what is a table? A table is essentially a collection of related variables
 Let's see an example:
 
 ```lua
-chicken1 = {} -- use this to tell Pico that my_cool_table is, in fact, a table
-chicken1.x = 30
-chicken1.y = 52
-chicken1.directionx = 0
-chicken1.directiony = 0
-chicken1.path_length = 0
+chicken1 = { -- use this to tell Pico that chicken1 is a table
+ x = 30
+ y = 52
+ directionx = 0
+ directiony = 0
+ path_length = 0
+} -- use this to tell Pico this is where our chicken1 table ends
 ```
 
 In the example, `chicken1` is a table holding a few variables: `x, y, directionx, directiony,` and `path_length.` All of these variables are related to `chicken1` and so we're grouping them together.
@@ -197,12 +198,13 @@ We can use functions to automate this a little. We know that each chicken has a 
 
 ```lua
 function make_chicken(x, y, directionx, directiony, path_length)
- new_chicken = {} -- tell Pico that new_chicken will be a table
- new_chicken.x = x
- new_chicken.y = y
- new_chicken.directionx = directionx
- new_chicken.directiony = directiony
- new_chicken.path_length = path_length
+ new_chicken = { -- tell Pico that new_chicken will be a table
+  x = x
+  y = y
+  directionx = directionx
+  directiony = directiony
+  path_length = path_length
+ }
 end
 ```
 
