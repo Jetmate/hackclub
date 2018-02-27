@@ -1,76 +1,8 @@
-## Quick detour: Functions
-
-We're going to talk about making our own functions, since our `_update` function is getting really crowded and we still have more to go! 
-
-We've used functions before, like `cls()` and `map()`
-
-Functions are essentially just blocks of code that we group together. When we use a function (when we 'call the function'), we just run all the code inside of it. As an example, consider this code
-```lua
-function prep_screen()
- cls()
- map()
-end
-
-function _draw()
- prep_screen()
- 
- spr(1, player_x, player_y)
-end
-```
-
-which is exactly the same as this code
-
-```lua
-function _draw()
- cls()
- map()
- 
- spr(1, player_x, player_y)
-end
-```
-
-Functions can also take in arguments--that is, information. As an example, consider `spr.` `spr` takes in three pieces of information (arguments): the sprite number, the x-coordinate of where to draw it, and the y-coordinate of where to draw it. 
-Functions can also return information, making it avaliable to us. 
-
-Let's see an example. Earlier, we had some code which computed the corner of the room the player was in. Let's make some functions which take a point's coordinates, and returns the corner of the room the point is in. This way, in our `_update` function, we can use these two smaller functions.
-
-```lua
-function room_corner_x(x, y) -- this function takes in an x value and a y value
- roomx = flr(x / 128)
- roomx = roomx * 128
- return roomx
-end
-
-function room_corner_y(x, y)
- roomy = flr(y / 128)
- roomy = roomy * 128
- return roomy
-end
-
-function _update()
- camera(room_corner_x(player_x, player_y), room_corner_y(player_x, player_y))
-end
-```
-
-So, when we run `_update,` it will ask `room_corner_x` to compute the x coordinate of the room, and then `room_corner_y` to compute the y coordinate of the room. Say that `room_corner_x` finds a value of 128 and `room_corner_y` a value of 256. Then, the line of code 
-
-```lua
-camera(room_corner_x(player_x, player_y), room_corner_y(player_x, player_y))
-```
-
-will be replaced with
-
-```lua
-camera(128,  256)
-```
-
-Functions can be helpful when we have a lot of code, and soon we'll see very powerful things functions can do.
-
 ## Chickens
 
 Our player is fairly lonely. Let's give them some company by adding chickens to the game. The chickens will move around the screen as they please--the player will not be able to control them.
 
-![](assets/chicken_goal.gif)
+![](assets/chicken_goal_one.gif)
 
 While I'll be adding chickens to my game, feel free to add whatever type of animal you want to yours--a pig, a cow, or even an asteroid!
 
@@ -181,12 +113,13 @@ First, what is a table? A table is essentially a collection of related variables
 Let's see an example:
 
 ```lua
-chicken1 = {} -- use this to tell Pico that my_cool_table is, in fact, a table
-chicken1.x = 30
-chicken1.y = 52
-chicken1.directionx = 0
-chicken1.directiony = 0
-chicken1.path_length = 0
+chicken1 = { -- use this to tell Pico that chicken1 is a table
+ x = 30
+ y = 52
+ directionx = 0
+ directiony = 0
+ path_length = 0
+} -- use this to tell Pico this is where our chicken1 table ends
 ```
 
 In the example, `chicken1` is a table holding a few variables: `x, y, directionx, directiony,` and `path_length.` All of these variables are related to `chicken1` and so we're grouping them together.
@@ -195,18 +128,94 @@ In the example, `chicken1` is a table holding a few variables: `x, y, directionx
 
 We can use functions to automate this a little. We know that each chicken has a x coordinate, y coordinate, a direction, and a path length. So, I will make a function which takes in this information and gives back a table containing it all.
 
+One important thing to note is that, in the line `new_chicken.x = x,` the code `new_chicken.x` refers to the x value inside of the `new_chicken` table, whereas the code `x` on the rightside refers to the value for `x` that our function recieves (the argument). 
+
+## `make_chicken` and functions
+
+We use two **functions** in our code so far, `_update` and `_draw`. We can make more functions, and these can be useful.
+
+My goal is to create a `make_chicken` function to help make creating chickens easier. We will tell `make_chicken` some information about our chicken, and then it will create it-- this way, we just need to type the values instead of `x, y, directionx, ...`
+
+First, let's look at a basic function. 
+
 ```lua
-function make_chicken(x, y, directionx, directiony, path_length)
- new_chicken = {} -- tell Pico that new_chicken will be a table
- new_chicken.x = x
- new_chicken.y = y
- new_chicken.directionx = directionx
- new_chicken.directiony = directiony
- new_chicken.path_length = path_length
+function bound_player()
+ if player_x < 0 then
+  player_x = 0
+ elseif player_x > 120 then
+  player_x = 120
+ end
+ 
+ if player_y < 0 then
+  player_y = 0
+ elseif player_y > 120 then
+  player_y = 120
+ end
 end
 ```
 
-One important thing to note is that, in the line `new_chicken.x = x,` the code `new_chicken.x` refers to the x value inside of the `new_chicken` table, whereas the code `x` on the rightside refers to the value for `x` that our function recieves (the argument). 
+This function, `bound_player`, might look familiar: The code inside of it was written at the end of the last workshop!
+
+Now, in our `_update` function, we can just write 
+
+```lua
+function _update()
+ bound_player()
+end
+```
+
+after we move the player, and the code inside `bound_player` will happen--preventing the player from going past the edges. 
+
+We can also take in **arguments** to our functions. Arguments 
+
+```lua
+function make_chicken(x, y, directionx, directiony, path_length)
+ new_chicken = { -- tell Pico that new_chicken will be a table
+  x = x
+  y = y
+  directionx = directionx
+  directiony = directiony
+  path_length = path_length
+ }
+end
+```
+
+`make_chicken` is cool because it makes a new chicken, but we don't have any way to access the new chicken it creates! This is where **return statements** come in. 
+
+Consider the function
+
+```lua
+function example()
+ return 2
+end
+```
+All this function does is `return 2.` What this means is that, when we have some code like
+
+```lua
+my_variable = example()
+```
+
+Pico will run the code in example, and then get to the return statement. Once it gets there, it will change `example()` to `2` (since we tell it to return `2`) and the code will be changed into
+
+```lua
+my_variable = 2
+```
+
+Now, we can use `return` in our `make_chicken` function:
+
+```lua
+function make_chicken(x, y, directionx, directiony, path_length)
+ new_chicken = { -- tell Pico that new_chicken will be a table
+  x = x
+  y = y
+  directionx = directionx
+  directiony = directiony
+  path_length = path_length
+ }
+ 
+ return new_chicken
+end
+```
 
 Now, we can replace all of our chicken variables with the following two lines of code:
 
