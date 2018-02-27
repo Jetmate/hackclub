@@ -70,7 +70,7 @@ Functions can be helpful when we have a lot of code, and soon we'll see very pow
 
 Our player is fairly lonely. Let's give them some company by adding chickens to the game. The chickens will move around the screen as they please--the player will not be able to control them.
 
-![](assets/chicken_goal.gif)
+![](assets/chicken_goal_one.gif)
 
 While I'll be adding chickens to my game, feel free to add whatever type of animal you want to yours--a pig, a cow, or even an asteroid!
 
