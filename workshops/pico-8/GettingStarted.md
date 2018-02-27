@@ -10,13 +10,13 @@ One common practice is to fullscreen it behind Pico-8, like so:
 ![](assets/pico_with_cheatsheet.png)
 
 ## Let's go!
-Tired of complex workflows and high-definition graphics? Well, the Pico-8 fantasy console is here to help. Through the course of this workshop you will make [this](demos/final.html) action game. Along the way you'll learn how to use the Pico-8 console along with the basics of Lua scripting.
+Tired of complex workflows and high-definition graphics? Well, the Pico-8 fantasy console is here to help. Through the course of this workshop you will make [this](demos/final.html) game. Along the way you'll learn how to use the Pico-8 console along with the basics of Lua scripting.
 
 <iframe src="demos/demo.html" width="100%" height="700px">
   <image src="assets/demo.gif">
 </iframe>
 
-A couple of basic pieces of information about Pico-8: there are three modes.
+Before we begin, let's learn how to use Pico. It has three views:
 
  * The console mode
 
@@ -28,34 +28,49 @@ A couple of basic pieces of information about Pico-8: there are three modes.
 
    ![](assets/editor.png)
 
-   This is where you make your game. The editor has multiple tabs that give you access to various bits of functionality. **You can get to it by pressing `Esc` from the console mode.**
+   This is where you make your game. It has the following tabs:
+   * code editor
+   * sprite editor
+   * tilemap editor
+   * sound effects editor
+   * music editor
+
+   **You can get to it by pressing `Esc` from the console mode.**
+
  * The game mode
 
    ![](assets/game.png)
 
    This is where you can test your game. **You can get to it by pressing `Ctrl-R`. To get back to the editor, press `Esc` twice.**
 
-## Making sprites and maps
+## Explore
 
-(Note: A great way to learn about this is to load an existing game, such as Celeste, and editing it there--that way, changes are immediate.)
+![](assets/splore.gif)
 
-Let's make our game's protagonist. To do this, first go to the editor mode. In the top right of the screen, you'll see five icons: The second icon from the left (the little face) will take us to the **sprite editor** once we click it.
+Let's start out by playing other people's games. Type `splore` in the console, refresh the game list, and mess around with a couple - these were all made with Pico. After you find one you like, press `esc` to bring up the menu, `exit to splore`, `esc` to bring up the console, and `esc` one more time to bring up the editor.
 
-We can make drawings in the (currently empty) blank square to the left. The square to the right filled with colors is our pallet; click on a color to select it for drawing. Try making a few images, called **sprites.** If you want to make multiple ones, click on a blank spot in the bottom to start drawing a new sprite. 
+![](assets/splore_exit.gif)
+
+Try modifying the sprites or tiles and then rerunning the game with `Ctrl-R` to get familiar with the editor.
+
+## Start making!
+We can start a new game from scratch with the `reboot` command.
+
+Let's make our game's player. To do this, first go to the editor mode. In the top right of the screen, you'll see five icons: The second icon from the left (the little face) will take you to the **sprite editor**.
+
+We can make drawings in the (currently empty) blank square to the left. The square to the right filled with colors is our pallet; click on a color to select it for drawing. Try making a player and then some terrain tiles. When you finish a sprite you can click on the next blank spot in the bottom to start draw a new one.
 
 ![](assets/sprite_editor.gif)
 
-I've made a few sprites: A player, some grass, some water, and some sand. With the grass, water, and sand sprites, I will draw an island that our game will take place in. 
-
-To put together these sprites to form a game world, we go to the map editor (the square icon in the top right). At the bottom of the map view, I can select sprites, and then add them to the map.
+You can use your terrain sprites to draw an island where the game will take place. Do this in the map editor (the next editor tab). At the bottom of the map view, select some sprites and add them to the map.
 
 ![](assets/map_editor.gif)
 
-The map is very large. To see more, we can use the scroll wheel to zoom out, or hold the middle moust button down while dragging the mouse to scroll the portion of the map we're looking at. Try it out to see how large the map is!
-
-Now that I've made my player and island, I'll need to use some code to display them to the screen. Feel free to pause here and customize your game: Build a town or farm instead of an island, have a player better than my atrocious smiley face--the possibilites are endless! 
+Now that you've made the player and setting, you'll need to use some code to display them to the screen. Feel free to pause here and customize your game: build a town or farm instead of an island, an actual player better instead of the atrocious smiley face, anything - the possibilites are endless!
 
 ## Code, oh my
+Before we start coding, some theory:
+
 ![](assets/gameloop.png)
 
 Every game has something called a gameloop, which is code that is called every frame. This gameloop is split into three parts: first, the game collects user input (is the right arrow pressed?). Then, the game updates some internal variables (move the player right). Finally, the game redraws the screen to reflect the new state.
@@ -72,7 +87,7 @@ Don't worry about what exactly is going on here, just understand that anything t
 
 Sidenote: in Pico-8, any line of code that begins with `--` is ignored, so it's useful for writing various comments about the code.
 
-With that in mind, let's draw our sprite. 
+With that in mind, let's draw our sprite.
 
 ```lua
 function _draw()
@@ -89,7 +104,7 @@ Note how I give Pico-8 a number to indicate the sprite I'm drawing. Each sprite 
 
 ![](assets/sprite_number.png)
 
-So, `spr(1, 10, 10)` will draw sprite number 1 at the point `(10, 10).` 
+So, `spr(1, 10, 10)` will draw sprite number 1 at the point `(10, 10).`
 
 When you actually execute this (`Ctrl-R`), you may notice you still have artifacts from the console. To fix this, we will use the `cls()` function, which clears the screen. That way, anything you typed in the console earlier will be erased and won't block our view of the game.
 
@@ -107,7 +122,7 @@ One thing to note: Coordiantes work a little different in Pico-8. The point `(0,
 
 ![](assets/coordinate_grid.png)
 
-So, the point `(10, 10)` can be thought of as going 10 pixels to the right of the top left pixel, and then going 10 pixels. 
+So, the point `(10, 10)` can be thought of as going 10 pixels to the right of the top left pixel, and then going 10 pixels.
 
 ## Variables
 Right now our "game" is a little boring, as the square isn't moving at all. The reason behind this is that we're always giving it the same coordinates. The solution? Variables.
@@ -259,7 +274,7 @@ To do this, we're going to start drawing our map to the game. We can do this in 
 function _draw()
  cls()
  spr(1, player_x, player_y)
- 
+
  map()
 end
 ```
@@ -272,7 +287,7 @@ Now, our map appears--but our player disappears! This is because Lua runs code i
 function _draw()
  cls()
  map()
- 
+
  spr(1, player_x, player_y)
 end
 ```
@@ -281,13 +296,13 @@ end
 
 ## Big maps, small screens
 
-Now, we still have an issue: The map is big. So big, the screen can't fit it all at once! 
+Now, we still have an issue: The map is big. So big, the screen can't fit it all at once!
 
 The player can try moving off the screen, but it's no help: The player runs off the screen to a different part of the map, but Pico doesn't follow him, and we only see the starting area.
 
 ![](assets/running_off.gif)
 
-So, we need to tell Pico to run along with the player once they go to another part of the map. We can do this using the `camera` function. 
+So, we need to tell Pico to run along with the player once they go to another part of the map. We can do this using the `camera` function.
 
 Pico has a little camera which takes pictures of what it sees, and then reports it back to us. At the start of the game, the camera is at the top left corner of the map, so it only sees the tiny portion of the map that can fit on the screen. Since our code only tells the player to move, and never moves the camera, we don't follow the player around!
 
@@ -303,9 +318,9 @@ But this doesn't end up looking very nice...
 
 ![](assets/bad_camera.gif)
 
-The issue is the camera is in the same spot as the top left of the player. And since the camera makes the pixel it occupies become the top left corner of the picture it takes, the player will always be in the top left. 
+The issue is the camera is in the same spot as the top left of the player. And since the camera makes the pixel it occupies become the top left corner of the picture it takes, the player will always be in the top left.
 
-We can fix this in multiple ways: We could try to offset the camera a little so that the player ends up in the center of the screen (how Mario does it), or make it so the camera stays mostly still, but 'jumps' everytime the player leaves the screen (like Zelda). We'll be implementing the second approach in this workshop, but feel free to try implementing the first one if you want to. 
+We can fix this in multiple ways: We could try to offset the camera a little so that the player ends up in the center of the screen (how Mario does it), or make it so the camera stays mostly still, but 'jumps' everytime the player leaves the screen (like Zelda). We'll be implementing the second approach in this workshop, but feel free to try implementing the first one if you want to.
 
 ## Fixing the camera
 
@@ -316,7 +331,7 @@ Let's divide the map into a number of screen sized 'rooms.' We want the camera t
 To achieve this, we'll need to do two things:
  * Determine the top left corner of the room the player is in
  * Move the camera to that top left corner
- 
+
 So, let's try and figure out the top left corner of the room the player is in.
 
 To do this, let's look at a few examples. Remember that the screen is 128 by 128 pixels, and our rooms are also going to be 128 by 128 pixels.
@@ -329,7 +344,7 @@ function _update()
 end
 ```
 
-The `flr` function stands for floor, and just means to round down to the nearest whole number: So `flr(14.32)` is 14, and `flr(4213.999)` is 4213. Why might this be useful? Because it tells us how many times 128 fits into the x-coordinate of the player. So, `flr(134 / 128)` and `flr(128 / 128)` both give back 1, indicating that 128 goes into both 134 and 128 only once. 
+The `flr` function stands for floor, and just means to round down to the nearest whole number: So `flr(14.32)` is 14, and `flr(4213.999)` is 4213. Why might this be useful? Because it tells us how many times 128 fits into the x-coordinate of the player. So, `flr(134 / 128)` and `flr(128 / 128)` both give back 1, indicating that 128 goes into both 134 and 128 only once.
 
 Then, we multiply this number by 128.
 ```lua
@@ -346,12 +361,11 @@ We can do something similar to find the y-coordinate (try and figure it out your
 function _update()
  roomx = flr(player_x / 128)
  roomx = roomx * 128
- 
+
  roomy = flr(player_y / 128)
  roomy = roomy * 128
- 
+
  camera(roomx, roomy)
 end
 ```
-
 Now, we will have the camera system we wanted!
