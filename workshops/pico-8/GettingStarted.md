@@ -281,9 +281,9 @@ end
 
 ## Borders
 
-Our game is feeling lively now: There's chickens, a player, and great island. Except, the player currently can leave the island and enter an infinite void of darkness...
+Our game is fine now. We can move around as we please on this cool island. However, we have an issue: The player can run off the screen!
 
-![](assets/depressing_void.gif)
+![](assets/run_off_screen.gif)
 
 Why is this happening? Well, our map is only so big. When I moved the player above the top of the map, the game had no idea what that area looks like, so it drew nothing. We'll need to prevent the player from leaving the map.
 
@@ -303,7 +303,7 @@ function _update()
 end
 ```
 
-However, the player can still exit the map from the right, left, or bottom. Try to fix this yourself, remembering that the map is 1024 pixels wide by 512 pixels tall (if you didn't use all of the map, you might want to make these bounds smaller).
+However, the player can still exit the map from the right, left, or bottom. Try to fix this yourself, remembering that the screen is 128 pixels wide by 128 pixels tall.
 
 One solution might be this:
 
@@ -311,38 +311,38 @@ One solution might be this:
 function _update()
  if player_x < 0 then
   player_x = 0
- elseif player_x > 1024 then
-  player_x = 1024
+ elseif player_x > 128 then
+  player_x = 128
  end
 
  if player_y < 0 then
   player_y = 0
- elseif player_y > 512 then
-  player_y = 512
+ elseif player_y > 128 then
+  player_y = 128
  end
 end
 ```
 
 However, this code has a very subtle flaw...
 
-![](assets/half_off.gif)
+![](assets/half_off_one.gif)
 
 Remember that `(player_x, player_y)` is just the top left corner of the player. So, this code will only check if the player's top left corner is good, not the entire player. This works fine for the top and left sides of the screen, but not the bottom or right sides since it's possible for the bottom pixels of the player to be past the line without this code picking up on it.
 
-So, we shouldn't check if `player_y > 512.` We should check if `player_y + 8 > 512` (since the player is 8 pixels wide), meaning we want `player_y > 504.` So, we can change our code like so:
+So, we shouldn't check if `player_y > 128.` We should check if `player_y + 8 > 128` (since the player is 8 pixels wide), meaning we want `player_y > 120.` So, we can change our code like so:
 
 ```lua
 function _update()
  if player_x < 0 then
   player_x = 0
- elseif player_x > 1016 then
-  player_x = 1016
+ elseif player_x > 120 then
+  player_x = 120
  end
 
  if player_y < 0 then
   player_y = 0
- elseif player_y > 504 then
-  player_y = 504
+ elseif player_y > 120 then
+  player_y = 120
  end
 end
 ```
