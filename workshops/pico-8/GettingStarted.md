@@ -279,79 +279,72 @@ end
 
 ![](assets/map_fixed.png)
 
-## Big maps, small screens
+## Borders
 
-Now, we still have an issue: The map is big. So big, the screen can't fit it all at once! 
+Our game is feeling lively now: There's chickens, a player, and great island. Except, the player currently can leave the island and enter an infinite void of darkness...
 
-The player can try moving off the screen, but it's no help: The player runs off the screen to a different part of the map, but Pico doesn't follow him, and we only see the starting area.
+![](assets/depressing_void.gif)
 
-![](assets/running_off.gif)
+Why is this happening? Well, our map is only so big. When I moved the player above the top of the map, the game had no idea what that area looks like, so it drew nothing. We'll need to prevent the player from leaving the map.
 
-So, we need to tell Pico to run along with the player once they go to another part of the map. We can do this using the `camera` function. 
+Remember how coordinates work in Pico? Here's a quick refresher:
 
-Pico has a little camera which takes pictures of what it sees, and then reports it back to us. At the start of the game, the camera is at the top left corner of the map, so it only sees the tiny portion of the map that can fit on the screen. Since our code only tells the player to move, and never moves the camera, we don't follow the player around!
+![](assets/coordinate_grid.png)
 
-So, we need to move the camera around with the player. One way of doing it might be to tell the camera to move with the player, by adding this to the end of our `_update` function
+The top left corner is (0, 0), and going up makes your y-coordinate go down. So, if we go up above the very top of the screen, our why coordinate will go down below 0. So, to prevent you from leaving the screen from the side, let's prevent your y-coordinate below 0. 
 
 ```lua
 function _update()
- camera(player_x, player_y) -- move the camera to (player_x, player_y), the same place the player is
-end
-```
-
-But this doesn't end up looking very nice...
-
-![](assets/bad_camera.gif)
-
-The issue is the camera is in the same spot as the top left of the player. And since the camera makes the pixel it occupies become the top left corner of the picture it takes, the player will always be in the top left. 
-
-We can fix this in multiple ways: We could try to offset the camera a little so that the player ends up in the center of the screen (how Mario does it), or make it so the camera stays mostly still, but 'jumps' everytime the player leaves the screen (like Zelda). We'll be implementing the second approach in this workshop, but feel free to try implementing the first one if you want to. 
-
-## Fixing the camera
-
-Let's divide the map into a number of screen sized 'rooms.' We want the camera to display the 'room' the player is currently in, like so:
-
-![](assets/camera_goal.gif)
-
-To achieve this, we'll need to do two things:
- * Determine the top left corner of the room the player is in
- * Move the camera to that top left corner
+ -- get input and move the player like before
  
-So, let's try and figure out the top left corner of the room the player is in.
-
-To do this, let's look at a few examples. Remember that the screen is 128 by 128 pixels, and our rooms are also going to be 128 by 128 pixels.
-
-The starting room the player is in has a top left corner of `(0, 0).` If the player moves 128 pixels to the right of that point, to get to `(128, 0),` they will run into the second room. So, the top left corner of this second room is `(128, 0).` However, if the player moves to `(134, 0)` they will still be in the second room. To deal with this, I will start by dividing the x-coordinate by 128 like so:
-
-```lua
-function _update()
- roomx = flr(player_x / 128)
+ if player_y < 0 then -- if the player went too far up
+  player_y = 0 -- send the player back to the edge
+ end
 end
 ```
 
-The `flr` function stands for floor, and just means to round down to the nearest whole number: So `flr(14.32)` is 14, and `flr(4213.999)` is 4213. Why might this be useful? Because it tells us how many times 128 fits into the x-coordinate of the player. So, `flr(134 / 128)` and `flr(128 / 128)` both give back 1, indicating that 128 goes into both 134 and 128 only once. 
+However, the player can still exit the map from the right, left, or bottom. Try to fix this yourself, remembering that the map is 1024 pixels wide by 512 pixels tall (if you didn't use all of the map, you might want to make these bounds smaller).
 
-Then, we multiply this number by 128.
-```lua
-function _update()
- roomx = flr(player_x / 128)
- roomx = roomx * 128
-end
-```
-Thus, if you're at an x-coordinate of 134, the first line will set `roomx` to 1, and the next line will set `roomx` to 128. More generally, the first line of code will find out how many rooms to the right you've gone, and then the next line of code will multiply that number by 128, since each room is 128 pixels wide. This will help us find the x coordinate of the top left corner of the room: First, we find which room we're talking about by doing `flr(player_x / 128),` and then we multiply by 128 since each room is 128 pixels wide.
-
-We can do something similar to find the y-coordinate (try and figure it out yourself before checking our code) and then set the camera to this `(roomx, roomy)` coordinate.
+One solution might be this:
 
 ```lua
 function _update()
- roomx = flr(player_x / 128)
- roomx = roomx * 128
- 
- roomy = flr(player_y / 128)
- roomy = roomy * 128
- 
- camera(roomx, roomy)
+ if player_x < 0 then
+  player_x = 0
+ elseif player_x > 1024 then
+  player_x = 1024
+ end
+
+ if player_y < 0 then
+  player_y = 0
+ elseif player_y > 512 then
+  player_y = 512
+ end
 end
 ```
 
-Now, we will have the camera system we wanted!
+However, this code has a very subtle flaw...
+
+![](assets/half_off.gif)
+
+Remember that `(player_x, player_y)` is just the top left corner of the player. So, this code will only check if the player's top left corner is good, not the entire player. This works fine for the top and left sides of the screen, but not the bottom or right sides since it's possible for the bottom pixels of the player to be past the line without this code picking up on it.
+
+So, we shouldn't check if `player_y > 512.` We should check if `player_y + 8 > 512` (since the player is 8 pixels wide), meaning we want `player_y > 504.` So, we can change our code like so:
+
+```lua
+function _update()
+ if player_x < 0 then
+  player_x = 0
+ elseif player_x > 1016 then
+  player_x = 1016
+ end
+
+ if player_y < 0 then
+  player_y = 0
+ elseif player_y > 504 then
+  player_y = 504
+ end
+end
+```
+
+Now it works!
