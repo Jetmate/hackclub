@@ -75,13 +75,6 @@ end
 
 Now, we will have the camera system we wanted!
 
-
-## Editor tabs
-
-move all your chicken functions to one tab so it's easier to read pls
-
-TODO: this
-
 ## Making the player a table
 
 We use tables to group related variables. `player_x` and `player_y` are related, so why not group them? 
@@ -332,11 +325,41 @@ Here's an example of what I want to happen:
 
 ## Tables of enemies
 
-'member chickens? that, but with enemies
+With chickens, we used functions and tables to make our lives easier later on; adding a lot of chickens to our game is a breeze!
+
+We'd like to be able to do that with enemies, as well. 
+
+Let's get a few functions made.
+
+```lua
+enemies = {} -- our table of enemies
+
+function make_enemy(x, y)
+ enemy = {
+  x = x
+  y = y
+ }
+ add(enemies, enemy)
+end
+
+function update_enemy(enemy)
+ 
+end
+
+function draw_enemy(enemy)
+ spr(enemy.x, enemy.y, 6) -- replace 6 with your enemy sprite
+end
+```
+
+These functions are fairly bare bones now, since we don't yet have an idea for enemies.
+
+**Your Task: Get some enemy code!** Our chickens have `dirx` and `diry` variables telling them which direction to move in. Add these variables to our enemies, and add some code which (just like we did for chickens) moves them in `dirx` and `diry`. Remember to check for collisions--and also, our collision functions earlier will still work here...
 
 ## Chasing the player
 
-first version:
+We want the enemy to chase the player. Thinking about this at a high level, making an enemy chase the player seems easy: Have them run in the direction of the player! If the player is above them, move up. If the player is to their bottom right, move down and right. Easy enough! Now, how should tell the enemy to change directions to the player? Functions!
+
+Let's make a `charge_player` function, which will be called whenever the enemy is close enough to the player. I will make this happen whenever the player and the enemy are on the same screen, but you can decide for yourself when `charge_player` should be called.
 
 ```lua
 function charge_player(enemy)
@@ -358,24 +381,41 @@ function charge_player(enemy)
 end
 ```
 
-but oh no we can get chickens stuck shit
+Let's try this out!
 
-<image of stuck chicken>
+![](assets/broken_chase.gif)
 
-hmm how can this happen
+Hmm... what's going on here? Try thinking about this a little before reading.
 
-well when the chicken has the right x-coordinate but moving y-coordinate causes him to move into obstacle (or other way)
+Well, the enemy has the right x-coordinate. The enemy doesn't need to move left or right to get closer to the player, so it only tries to move up. But up gets you stuck in a lake! The poor enemy doesn't know this, and keeps trying it's hardest to go up against the current.
 
-let's fix this by telling the chicken to just move until there's no more obstacle  
+How can we fix this? Well, we need to detect when our enemy becomes stuck. 
+
+## Getting unstuck
+  
+To detect when we're stuck, we'll use `stuckx` and `stucky.` 
+
+Above, we got stuck because the chicken wasn't moving left or right--only up--but wasn't getting anywhere because of the obstacle. Our enemy wanted to move up but could not due to an obstacle. So, when getting stuck, we should check:
+
+* Do we have the same x-coordinate as the player?
+* Are we stuck-- that is, are we not moving where we want to be moving?
+
+Where the enemy wants to move is `enemy.y + enemy.diry`. So, we'll check two things: Is the enemy at a point where they don't want to move left/right anymore, but not moving where they want to up/down?
   
 ```lua
-if enemy.dirx == 0 and enemy.y != py then
+if enemy.dirx == 0 and enemy.y != enemy.y + enemy.diry then
  enemy.stuckx = true
  move_to(px - 1, py, enemy)
 else
  enemy.stuckx = false
 end
-	
+```
+
+This code will make `stuckx` true only if we're stuck and we need to move left or right to escape. Then, we move 1 pixel left. While `stuckx` is on, we'll keep moving the enemy left even if that sends them further away from the player--this way, they keep moving left until they get around the obstacle.
+
+We want to do the same thing in the other direction, as well: 
+
+```lua
 if enemy.diry == 0 and enemy.x != px then 
  enemy.stucky = true
  move_to(px, py - 1, enemy)
@@ -384,37 +424,45 @@ else
 end
 ```
 
-and then
+## Another issue...
+
+Thinking from a high level, our code still has an issue--what if moving left just sends them to another wall, and they can't keep going left? Shoot. 
+
+If an enemy is stuck and keeps going left, only to bump into another wall, send them right! Or, better yet, before moving check 
+if left or right would be the better direction (aka faster). 
+
+Let's imagine we're trying to go up, but get stuck. Alright, so we need to keep moving in the x-direction until the tile above us is a tile we can walk on--that way, we can actually go up! Then, we'll start moving normally again. So, we should first check how much to the left we'd need to move, then check how much to the right we'd need to move. Then, whichever path is shorter, we'll take. The only problem is, we don't know this in advance--we'd need some code which keeps incrementing a counter by 1 until we can walk on the tile above us...
+
+## While Loops to the Rescue!
+
+A `while` loop will keep repeating a block of code while something is true. 
+
+Let's see how this can solve our problem: Say the enemy is on the tile with coordinates `(x, y)` and becomes stuck. Instead of just moving left, let's pick either left or right based on our while loop. 
 
 ```lua
-function charge_player()
- -- previous stuff
- 
- if enemy.stuckx then
-	 enemy.dirx = 0
- end
-  
- if enemy.stucky then
-	enemy.diry = 0
- end
+tiles_left = 0
+while fget(mget(x - tiles_left, y - 1), 0) do
+ tiles_left = tiles_left + 1
 end
 ```
 
-simple, good enough... BUT SHIT
+Note `do` and `end`. Also, remember `mget` and `fget`? They helped us out in collision detection. `mget` just figures out which sprite is on a tile, and `fget` returns is a flag is on. This is useful, since flag 0 indicates a tile is solid. So, `fget(mget(x- tiles_left, y - 1), 0)` returns `true` if the tile at `(x - tiles_left, y - 1)` is solid, and false if we can walk on it. (Remember that `(x - tiles_left, y-1)` is just the tile above the tile at `(x - tiles_left, y)`, which is where our enemy would end up moving before it started going up!) Now, do something similar with `tiles_right`, counting how many tiles right we'd need to move before we can go up again.
 
-what if he can't go left no more... poor little chicken gets stuck
+Now, instead of just moving left when `stuckx` is true, we'll pick a better direction and move in that direction.
 
-change the code to start moving right if left gets us stuck (same for up/down) use the fixx, fixy system
+However, our code still has one flaw: What if the obstacle goes off very far to the left, so we run into the edge of the map before we can go over it? To fix this, we'll just check that `x - tiles_left >= 0` since any negative coordinates are off the map.
 
+**Your Task: Our code isn't the best with corners yet. Fix it.** Think about what happens when the chicken goes into a corner with our current code. The situtation is a little dire. Figure out what the bug is, why it's happening, and how to stop it. 
 
-poor little chicko still can't handle corners!!!!!
-(think about why our collision code can't handle them)
+## Disappearing
 
-let's fix it (do stuckcorner thing)
+Let's make chickens disappear when they touch the player. To do this, first we will need a way to tell when the chicken is touching the player. I'll make a `touching` function which takes two entities (aka, living things) and returns when they are touching. 
 
-## Exploding
+Naively, we might thing this is as simple as checking they have the same coordinates. But alas, it's not that simple: The coordinate only checks if they have the exact same top-left pixels, not if they're touching! 
 
-note: 
+To do this, remember that in Pico, objects are 8-pixels wide. So, we want to check if my top left corner within 8-pixels going left or right of your top corner, and within 8-pixels going up and down, as that indicates we'll be touching somewhere. To do this, we'll look to math: The absolute value function! `abs(x1 - x2)` will return the distance between `x1` and `x2`. So, `abs(x1 - x2) < 8` will check if the x-coordinates are within 8-pixels of each other, and `abs(y1 - y2) < 8` will check if the y-coordinates are good.
+
+So, our `touching` function is this:
 
 ```lua
 function touching(e1, e2)
@@ -424,10 +472,8 @@ function touching(e1, e2)
 end
 ```
 
-is probably an easy to understand collision function
+**Your task: Make enemies disappear when they touch the player!** To do this, you will need the `del` function. `del` takes a table and something in that table, and deletes it from the table. So, for example, `del(enemies, very_bad_enemy)` will remove `very_bad_enemy` from the table of enemies--so that we no longer update the enemy or draw it to the screen!
 
-## Health
+## Moving On!
 
-## Health bar
-
-## Flags, again: Spikes and lava
+Congratulations, you've finished our workshop! Try to extend your game.
