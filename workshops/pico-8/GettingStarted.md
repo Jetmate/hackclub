@@ -106,6 +106,12 @@ Note how I give Pico-8 a number to indicate the sprite I'm drawing. Each sprite 
 
 So, `spr(1, 10, 10)` will draw sprite number 1 at the point `(10, 10).`
 
+STOP: Before reading further, press `Ctrl-R` to execute your code. Please please do this before I tell you what happens!
+
+Have you seen it?
+
+...
+
 When you actually execute this (`Ctrl-R`), you may notice you still have artifacts from the console. To fix this, we will use the `cls()` function, which clears the screen. That way, anything you typed in the console earlier will be erased and won't block our view of the game.
 
 ```lua
@@ -117,6 +123,23 @@ function _draw()
 end
 ```
 Now every frame will start from a blank screen.
+
+It's very important we put `cls()` before putting `spr(1, 10, 10)`. Try thinking about why, and then test your guess--swap the order of the lines, and then run the program!
+
+You shouldn't see anything on your screen. That's because Pico runs lines in order: First, it runs `cls()` and then it runs `spr(1, 10, 10)`. So, when you give Pico the code
+
+```lua
+function _draw()
+
+ spr(1, 10, 10)
+ cls()
+ 
+end
+```
+
+you're telling Pico "draw a sprite, and then erase everything on the screen." Since "everything on the screen" includes our sprite, that gets erased as well. Uh oh! 
+
+## Coordinates
 
 One thing to note: Coordiantes work a little different in Pico-8. The point `(0, 0)` is in the top left corner, and making the y-coordinate bigger actually makes the point go down, not up.
 
@@ -174,7 +197,14 @@ function _draw()
  spr(1, player_x, 10)
 end
 ```
+
 ![](assets/moving_face.gif)
+
+Let's take a step back for a moment, and think about how Pico reads this code. What Pico will do is as follows: First, it creates the `player_x` variable, and then stores `0` inside of it. Next, it calls `_update()` and runs the code inside of it, which changes `player_x`. Then, it calls `_draw()` and runs the code inside of that function. Then, it calls `_update()` again. Then, it calls `_draw()` again. Then, it calls `_update()` again... Pico will keep doing this until the end of time (or until you quit the program--whichever comes first). 
+
+Here's a visualization of what Pico does:
+
+![](assets/pf_update_and_draw.apng)
 
 ## Values
 A value is anything that you can place into a variable. The most basic type is a number. As you saw earlier, there are also several operations that result in numbers:
@@ -245,6 +275,10 @@ function _draw()
  spr(1, player_x, player_y)
 end
 ```
+
+Here's a visualization of what happens:
+
+![](assets/pf_if1.apng)
 
 The code under `elseif` will only run if the first `if` statement is false - this makes it useful for grouping multiple conditions that you know can't all be true (e.g. you know that the player can't be moving right and left at the same time). If we had just made another if for moving left, then pressing down both right and left would have caused the player to stand still.
 
